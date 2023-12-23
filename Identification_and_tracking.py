@@ -353,7 +353,10 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             data.objects.append(twins)    
             export_file(data.tables['twins'],file="{}/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
             export_file(data,file="{}/twinFiles/twins{}.dump".format(path,timestep_curr),format="lammps/dump",columns =
-             ["Particle Identifier","Particle Type", "Structure Type", "Position.X", "Position.Y", "Position.Z","Orientation.W","Cluster","PossibleTwinGroups","TwinID"],frame=frame)
+             ["Particle Identifier","Particle Type", "Structure Type", "Position.X", "Position.Y", "Position.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.W","Cluster","PossibleTwinGroups","TwinID"],frame=frame)
+            export_file(data.tables['ClNorPlanes'],file="{}/twinFiles/Normal_Vectors{}.txt".format(path,timestep_curr),format="txt/table")
+            export_file(data.tables['TwinClusterIDs'],file="{}/twinFiles/TwinClusterIDs{}.txt".format(path,timestep_curr),format="txt/table")	
+            export_file(data.tables['clusters'],file="{}/twinFiles/Clusters{}.txt".format(path,timestep_curr),format="txt/table")
             data.apply(ColorCodingModifier(property="TwinID",gradient=ColorCodingModifier.Viridis()))
 
         # Tracking of twins after first frame
