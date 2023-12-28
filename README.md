@@ -32,7 +32,7 @@ For testing and demonstration purposes, a sample crystal structure file is inclu
 Contributions and improvements to this tool are welcome! Feel free to fork this repository, make changes, and submit a pull request.
 
 ## License
-This tool is licensed under [insert license type here]. See the LICENSE file for more details.
+This tool is licensed under GNU GPLv3. See the LICENSE file for more details.
 
 ## Contact
 For inquiries or suggestions, contact [insert contact information here].
