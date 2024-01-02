@@ -28,9 +28,9 @@ Review Results: The tool will automatically identify crystallographic twins and 
 
 ### Part 2: Validation
 
-Example: `python .py twins.*` would apply the algorithm.
+Example: `python Validate_findings.py twins.*` would apply the algorithm.
 
-Run `python .py -h` to see all available flags.
+Run `python Validate_findings.py -h` to see all available flags.
 
 ## Sample Data
 For testing and demonstration purposes, a sample lammps.dump file is included in the testfiles directory.
