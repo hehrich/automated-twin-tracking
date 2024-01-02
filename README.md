@@ -26,14 +26,14 @@ Input Data: Provide crystal structure data as required by the script. Ensure the
 Review Results: The tool will automatically identify crystallographic twins and provide time-tracking data if applicable.
 
 ## Sample Data
-For testing and demonstration purposes, a sample crystal structure file is included in the sample_data directory.
+For testing and demonstration purposes, a sample lammps.dump file is included in the testfiles directory.
 
 ## Contributing
-Contributions and improvements to this tool are welcome! Feel free to fork this repository, make changes, and submit a pull request.
+Contributions and improvements to this tool are welcome! Feel free to fork this repository or make changes.
 
 ## License
 This tool is licensed under GNU GPLv3. See the LICENSE file for more details.
 
 ## Contact
-For inquiries or suggestions, contact [insert contact information here].
+For inquiries or suggestions, contact hendrik.ehrich@tuwien.ac.at.
 
