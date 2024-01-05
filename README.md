@@ -33,7 +33,7 @@ Example: `python Validate_findings.py twins.*` would apply the algorithm to all 
 Input Data: Part 1 creates a new directory "twinfiles" and exports lammps.dump files to the same. These files are the required input for part 2.
 
 ## Sample Data
-For testing and demonstration purposes, a sample lammps.dump file is included in the testfiles directory.
+For testing and demonstration purposes, sample lammps.dump files are included in the 'testfiles' directory.
 
 ## Contributing
 Contributions and improvements to this tool are welcome! Feel free to fork this repository or make changes.
