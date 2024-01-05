@@ -1,7 +1,7 @@
 # Crystallographic Twins Identification Tool using OVITO
 ## Overview
 This tool is designed to automate the identification, time-tracking and validation of crystallographic twins within crystal structures using OVITO. The tool is divided into two parts. 
-`Identification_and_tracking.py` finds, connects and tracks suspected twin boundaries. `Validate_Findings.py` validates the findings from the previous part. 
+`Identification_and_tracking.py` finds, connects and tracks suspected twins. `Validate_Findings.py` validates the findings from the previous part. 
 The Python script provided here streamlines the process, making it efficient and easy to use.
 
 ## Features
