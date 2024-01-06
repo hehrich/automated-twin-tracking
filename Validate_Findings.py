@@ -8,7 +8,7 @@ import math
 import itertools
 from ovito.vis import VectorVis
 import argparse
-def validateFindings(filename):
+def validateFindings(filename,frames_to_compute):
     
     pipeline = import_file(filename)
 
@@ -28,7 +28,7 @@ def validateFindings(filename):
                     temp_float=[float(entry) for entry in temp]
                     norPlane_table['NorVec'][row]=temp_float[1:4]
                     norPlane_table['ParVec'][row]=temp_float[4:]
-            print('Import Normal_Vectors{}.txt successful'.format(timestep))
+            # print('Import Normal_Vectors{}.txt successful'.format(timestep))
         except FileNotFoundError:
             print('Please change Python script modifier working directory to the location of your .dump file')  
             
@@ -46,7 +46,7 @@ def validateFindings(filename):
                     temp_int=[int(entry) for entry in temp]
                     
                     TwinClusterIDs['ClusterIDs'][row]=temp_int
-            print('Import TwinClusterIDs{}.txt successful'.format(timestep))
+            # print('Import TwinClusterIDs{}.txt successful'.format(timestep))
         except FileNotFoundError:
             print('Please change Python script modifier working directory to the location of your .dump file')         
                 
@@ -65,7 +65,7 @@ def validateFindings(filename):
                     
                     clusters['Center of Mass'][row]=temp_int[2:]
                     clusters['Cluster Size'][row]=temp_int[1]
-            print('Import clusters{}.txt successful'.format(timestep))
+            # print('Import clusters{}.txt successful'.format(timestep))
         except FileNotFoundError:
             print('Please change Python script modifier working directory to the location of your .dump file')    
             
@@ -79,12 +79,28 @@ def validateFindings(filename):
     def validate(frame: int, data: DataCollection):
         
         Sel=np.asarray([False]*data.particles.count)
-        COMS=data.tables['clusters']['Center of Mass']
+        # Get correct keynames (can be bugged changing from or to headless OVITO)
+        part_key_dict=dict.fromkeys(['orientation','position','structure','cluster'])
+        clustabl_key_dict=dict.fromkeys(['center','size'])
+        def get_keys(dic,actkeys):
+            for key in dic.keys():
+                for actkey in actkeys:
+                    if key in actkey.lower():
+                        dic[key]=actkey
+            return dic
+        
+        part_key_dict=get_keys(part_key_dict,list(data.particles.keys()))
+        clustabl_key_dict=get_keys(clustabl_key_dict,list(data.tables['clusters'].keys()))
+        
+        
+        COMS=data.tables['clusters'][clustabl_key_dict['center']]
         NorVecs=data.tables['ClNorPlanes']['NorVec']
-        Sizes=data.tables['clusters']['Cluster Size']
+        Sizes=data.tables['clusters'][clustabl_key_dict['size']]        
         ptwins=data.particles["possibletwingroups"]
-        part_or=data.particles['Orientation']
-        part_pos=data.particles['Position']
+        part_or=data.particles[part_key_dict['orientation']]
+        part_pos=data.particles[part_key_dict['position']]
+        part_strt=data.particles[part_key_dict['structure']]
+        part_cls=data.particles[part_key_dict['cluster']]
         vector_data=np.zeros((data.particles.count, 3))
         def NormalizeData(data):
             return (data - np.min(data)) / (np.max(data) - np.min(data))
@@ -170,14 +186,14 @@ def validateFindings(filename):
                     y_raw=np.delete(y_raw,0)
                     splitted_pos.pop(0)
                     splitted_ind.pop(0)
-                    print("removed left")
+                    # print("removed left")
                 elif section_ind[-1]==len(y)-1:
                     y=np.delete(y,-1)
                     x=np.delete(x,-1)
                     y_raw=np.delete(y_raw,-1)
                     splitted_pos.pop(-1)
                     splitted_ind.pop(-1)
-                    print("removed right")
+                    # print("removed right")
                 
                 num_sections=len(np.split(y, np.flatnonzero(np.abs(np.diff(y))>=0.4)+1))
                 
@@ -221,7 +237,7 @@ def validateFindings(filename):
                 s=com1+distance_scaled/2*verbVec+t*verbVec
                 asd={}
                 for neigh1 in finder.find_at(s): 
-                    if data.particles['structuretype'][neigh1.index] == 1 or data.particles['cluster'][neigh1.index] in cl:
+                    if part_strt[neigh1.index] == 1 or part_cls[neigh1.index] in cl:
                             
                         
                         punkt=data.particles.position[neigh1.index]
@@ -236,7 +252,7 @@ def validateFindings(filename):
                             
                     yield   
 
-            print("Finding ",i4+1,cl,"---------------------",end="\n\n")
+            print("Possible twin ",i4+1,cl,"---------------------",end="\n\n")
             x_graph,y_graph=([] for i in range(2))
             least_sections=99
             or_x=findBestComponent(orient_x,"x") 
@@ -313,15 +329,23 @@ def validateFindings(filename):
             table.y = table.create_property(f'orientation_{debugorientcomp}', data=y_graph)      
             data.objects.append(table)
             yield i4/twincount
-
+        # TODO: import twin IDs to display actually helpful info
         print(f'Successfully validated {twincount-not_validated} of {twincount} twins.')
-        print(f"Validated {valid_list}, could not validate {non_valid_list}")
-        
+        print(f"Validated {valid_list}",end=" ")
+        if non_valid_list:
+            print(f', could not validate {non_valid_list}')
+        else:
+            print()
     pipeline.modifiers.append(validate)
-    pipeline.compute()
+    print(f"\nAnalyzing {min(frames_to_compute ,pipeline.source.num_frames)} timestep(s)\n")
+    for frame in range(min(frames_to_compute ,pipeline.source.num_frames)):
+        print(f'\n#######Timestep {frame}#######\n')
+        pipeline.compute(frame)
+        print('##############')
 
 if __name__=="__main__":
-    parser = argparse.ArgumentParser(description='Python script for automatic twin identification and tracking. Place this Python file in the "twinFiles" directory created using the identification-and-tracking part.')
+    parser = argparse.ArgumentParser(description='Python script for automatic twin identification and tracking - Part 2. Place this Python file in the "twinFiles" directory created using Part 1 "identification-and-tracking.py".')
     parser.add_argument('filename',type=str,nargs=1)
+    parser.add_argument('--numfram', type=int, default=10000, help='Number of frames to compute after first timestep of provided files.')
     args=parser.parse_args()
-    validateFindings(args.filename)
+    validateFindings(args.filename,args.numfram)
