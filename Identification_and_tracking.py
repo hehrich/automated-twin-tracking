@@ -302,7 +302,8 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
 
     pipeline.modifiers.append(pairPlanes)
     
-    
+    # TODO: Need to implement case of no detected twins at timestep 0
+    #       as 'if frame==0' will stop working as intended!! (some indicator like first twins found) 
     
     # Track twins
     def trackTwins(frame: int, data: DataCollection):
@@ -382,7 +383,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
                         else:
                             COM_mean_old.append("lost")
                             v_mean_old.append(temp_float[1])              
-                    print('Import twins{}.txt successful'.format(timestep_pre))
+                    # print('Import twins{}.txt successful'.format(timestep_pre))
             except FileNotFoundError:
                 print('Please change Python script modifier working directory to the location of your .dump file')   
 
@@ -526,10 +527,10 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
         pipeline.compute(frame)
         
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Python script for automatic twin identification and tracking. Place this Python file in the directory of the atom data files of interest.')
+    parser = argparse.ArgumentParser(description='Python script for automatic twin identification and tracking - Part 1. Place this Python file in the directory of the atom data files of interest.')
     parser.add_argument('filename',type=str,nargs=1)
     parser.add_argument("--sizcut", type=int, default=100,help='Change clustersize cutoff to include or exclude smaller clusters (Default is 100 atoms).')
     parser.add_argument('--unwrap',action=argparse.BooleanOptionalAction,help='In case of periodic boundaries in the simulation, this should be set to True.')
-    parser.add_argument('--numfram', type=int, default=10000, help='Number of frames after first timestep of provided files.')
+    parser.add_argument('--numfram', type=int, default=10000, help='Number of frames to compute after first timestep of provided files.')
     args=parser.parse_args()
     findAndTrack(args.filename,args.sizcut,args.unwrap,args.numfram)
