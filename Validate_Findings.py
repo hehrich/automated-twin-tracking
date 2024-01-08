@@ -52,7 +52,7 @@ def validateFindings(filename,frames_to_compute):
                 
         clusters=DataTable(title='Cluster list',identifier='clusters')   
         try:
-            with open('clusters{}.txt'.format(timestep), 'r') as fobj:
+            with open('Clusters{}.txt'.format(timestep), 'r') as fobj:
                 lines=fobj.readlines()[2:]
             
                 a=len(lines)
