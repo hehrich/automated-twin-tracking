@@ -84,7 +84,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             
         data.particles_.create_property("Selection",data=Sel)
         stop=perf_counter()
-        print(f"Took {stop-start}s to find {data.particles.count-sum(Sel)} possible TB atoms")
+        print(f"Took {stop-start:.2f}s to find {data.particles.count-sum(Sel)} possible TB atoms")
 
     pipeline.modifiers.append(findTBatoms)
 
@@ -175,7 +175,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
 
         data.objects.append(norPlane_table)
         stop=perf_counter()
-        print(f"Took {stop-start}s to parameterise {len(planars)} cluster(s)")
+        print(f"Took {stop-start:.2f}s to parameterise {len(planars)} cluster(s)")
         
         
     pipeline.modifiers.append(parameterisePlanes)
@@ -297,7 +297,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
         TwinClusterIDs.y=TwinClusterIDs.create_property('p2',data=list(parallel_planes_dict.values()))
         data.objects.append(TwinClusterIDs)
         stop=perf_counter()
-        print(f"Paired {len(pairs)} pair(s) in {stop-start}s")
+        print(f"Paired {len(pairs)} pair(s) in {stop-start:.2f}s")
         
 
     pipeline.modifiers.append(pairPlanes)
@@ -517,7 +517,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             export_file(data.tables['clusters'],file="{}/twinFiles/Clusters{}.txt".format(path,timestep_curr),format="txt/table")
             data.apply(ColorCodingModifier(property="TwinID",gradient=ColorCodingModifier.Viridis(),end_value=num_twins))
         stop=perf_counter()
-        print(f"Took {stop-start}s to track twins")
+        print(f"Took {stop-start:.2f}s to track twins")
 
             
     pipeline.modifiers.append(trackTwins)
