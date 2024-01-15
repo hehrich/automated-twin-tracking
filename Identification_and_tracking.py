@@ -353,7 +353,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             twins.create_property('origin',data=[timestep_curr]*(i+1))
             data.objects.append(twins)    
             export_file(data.tables['twins'],file="{}/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
-            export_file(data,file="{}/twinFiles/twins{}.dump".format(path,timestep_curr),format="lammps/dump",columns =
+            export_file(data,file="{}/twinFiles/twins.dump.{}".format(path,timestep_curr),format="lammps/dump",columns =
              ["Particle Identifier","Particle Type", "Structure Type", "Position.X", "Position.Y", "Position.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.W","Cluster","PossibleTwinGroups","TwinID"],frame=frame)
             export_file(data.tables['ClNorPlanes'],file="{}/twinFiles/Normal_Vectors{}.txt".format(path,timestep_curr),format="txt/table")
             export_file(data.tables['TwinClusterIDs'],file="{}/twinFiles/TwinClusterIDs{}.txt".format(path,timestep_curr),format="txt/table")	
@@ -510,7 +510,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             twins.create_property('origin',data=origins)
             data.objects.append(twins)
             export_file(data.tables['twins'],file="{}/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
-            export_file(data,file="{}/twinFiles/twins{}.dump".format(path,timestep_curr),format="lammps/dump",columns =
+            export_file(data,file="{}/twinFiles/twins.dump.{}".format(path,timestep_curr),format="lammps/dump",columns =
              ["Particle Identifier","Particle Type", "Structure Type", "Position.X", "Position.Y", "Position.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.W","Cluster","PossibleTwinGroups","TwinID"],frame=frame)
             export_file(data.tables['ClNorPlanes'],file="{}/twinFiles/Normal_Vectors{}.txt".format(path,timestep_curr),format="txt/table")
             export_file(data.tables['TwinClusterIDs'],file="{}/twinFiles/TwinClusterIDs{}.txt".format(path,timestep_curr),format="txt/table")	
