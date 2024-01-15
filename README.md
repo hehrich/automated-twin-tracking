@@ -28,7 +28,7 @@ Review Results: The tool will automatically identify crystallographic twins and 
 
 ### Part 2: Validation
 
-Example: `python Validate_findings.py twins.*` would apply the algorithm to all timesteps, analyzed and exported in part 1.
+Example: `python Validate_findings.py twins.dump.*` would apply the algorithm to all timesteps, analyzed and exported in part 1.
 
 Input Data: Part 1 creates a new directory "twinfiles" and exports lammps.dump files to the same. These files are the required input for part 2.
 
