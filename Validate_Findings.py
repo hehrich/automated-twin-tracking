@@ -67,7 +67,23 @@ def validateFindings(filename,frames_to_compute):
                     clusters['Cluster Size'][row]=temp_int[1]
             # print('Import clusters{}.txt successful'.format(timestep))
         except FileNotFoundError:
-            print('Please change Python script modifier working directory to the location of your .dump file')    
+            print('Please change Python script modifier working directory to the location of your .dump file')  
+
+        global twinids
+        twinids=[]
+        try:
+            with open('twins{}.txt'.format(timestep), 'r') as fobj:
+                lines=fobj.readlines()[2:]
+                a=len(lines)
+
+                for row,line in enumerate(lines):
+                    temp=(line.split())
+                    
+                    temp_int=[float(entry) for entry in temp]
+                    if (temp_int[8:][0])>0: twinids.append(temp_int[0]) #print( )
+
+        except FileNotFoundError:
+            print('Please change Python script modifier working directory to the location of your .dump file')     
             
         data.objects.append(norPlane_table)
         data.objects.append(TwinClusterIDs)
@@ -266,7 +282,7 @@ def validateFindings(filename,frames_to_compute):
             
             if not np.any(x_graph):
                 not_validated+=1
-                non_valid_list.append((i4+1,list(cl)))
+                non_valid_list.append((twinids[i4]))#,i4+1,list(cl)
             else:
                 
 
@@ -317,9 +333,11 @@ def validateFindings(filename,frames_to_compute):
                 axleft = (axleft-180) if np.isclose(axleft,180,atol=5) else axleft
                 axright = (axright-180) if np.isclose(axright,180,atol=5) else axright
                 if (np.isclose(angle2_l, 60, atol=0.5) or np.isclose(angle2_r,60, atol=0.5)) and (np.isclose(axleft,0,atol=5) or np.isclose(axright,0,atol=5)):
-                    valid_list.append((i4+1,list(cl)))
+                    valid_list.append((twinids[i4]))#,i4+1,list(cl)
                 else:
-                    non_valid_list.append((i4+1,list(cl)))
+                    print(twinids[i4])
+                    non_valid_list.append(twinids[i4])
+                    # non_valid_list.append((twinids[i4],i4+1,list(cl)))
                 print()
             ###################################
 
@@ -331,9 +349,9 @@ def validateFindings(filename,frames_to_compute):
             yield i4/twincount
         # TODO: import twin IDs to display actually helpful info
         print(f'Successfully validated {twincount-not_validated} of {twincount} twins.')
-        print(f"Validated {valid_list}",end=" ")
+        print(f"Validated {valid_list} (ID)",end=" ")
         if non_valid_list:
-            print(f', could not validate {non_valid_list}')
+            print(f', could not validate {non_valid_list} (ID)')
         else:
             print()
     pipeline.modifiers.append(validate)
