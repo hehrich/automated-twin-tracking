@@ -268,7 +268,7 @@ def validateFindings(filename,frames_to_compute):
                             
                     yield   
 
-            print("Possible twin ",i4+1,cl,"---------------------",end="\n\n")
+            print(f"Finding {i4+1}, pair of clusters {cl}, twinid {twinids[i4]} ====================",end="\n\n")
             x_graph,y_graph=([] for i in range(2))
             least_sections=99
             or_x=findBestComponent(orient_x,"x") 
@@ -335,9 +335,8 @@ def validateFindings(filename,frames_to_compute):
                 if (np.isclose(angle2_l, 60, atol=0.5) or np.isclose(angle2_r,60, atol=0.5)) and (np.isclose(axleft,0,atol=5) or np.isclose(axright,0,atol=5)):
                     valid_list.append((twinids[i4]))#,i4+1,list(cl)
                 else:
-                    print(twinids[i4])
                     non_valid_list.append(twinids[i4])
-                    # non_valid_list.append((twinids[i4],i4+1,list(cl)))
+                    not_validated+=1
                 print()
             ###################################
 
