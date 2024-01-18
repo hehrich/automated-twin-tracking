@@ -36,6 +36,7 @@ Input Data: Part 1 creates a new directory "twinfiles" and exports lammps.dump f
 Using for example the free version of OVITO (https://www.ovito.org/about/ovito-pro/) you can visualize the results of 'Identification_and_tracking.py'.
 Every particle is assigned a new property "twinid" that is either the unique ID of the suspected twin or zero if the atom was not part of a detected structure.
 You can filter for this property using the expression selection modifier with some expression like „twinid==0“ and delete this selection to be left with all findings.
+'Validate_Findings.py' provides lists of "twinid"-entries of validated and not validated findings which make it possible to examine individual findings in more detail.
 
 ## Sample Data
 For testing and demonstration purposes, sample lammps.dump files are included in the 'Testfiles' directory.
