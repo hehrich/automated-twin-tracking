@@ -351,8 +351,9 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             twins.y=twins.create_property('COM_mean',data=twins_array[:,1])
             twins.create_property('v_mean',data=twins_array[:,0])
             twins.create_property('origin',data=[timestep_curr]*(i+1))
+            twins.create_property('find_nmbr',data=range(1,i+2))
             data.objects.append(twins)    
-            export_file(data.tables['twins'],file="{}/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
+            export_file(data.tables['twins'],file="{}/twinFiles/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
             export_file(data,file="{}/twinFiles/twins.dump.{}".format(path,timestep_curr),format="lammps/dump",columns =
              ["Particle Identifier","Particle Type", "Structure Type", "Position.X", "Position.Y", "Position.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.W","Cluster","PossibleTwinGroups","TwinID"],frame=frame)
             export_file(data.tables['ClNorPlanes'],file="{}/twinFiles/Normal_Vectors{}.txt".format(path,timestep_curr),format="txt/table")
@@ -367,7 +368,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
 
             # Import reference twin configuration of previous timestep
             try:
-                with open('twins{}.txt'.format(timestep_pre), 'r') as fobj:
+                with open('twinFiles/twins{}.txt'.format(timestep_pre), 'r') as fobj:
                     lines=fobj.readlines()[2:]
                     COM_mean_old=[]
                     v_mean_old=[]
@@ -508,8 +509,10 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             twins.y=twins.create_property('COM_mean',data=twins_array[:,1])
             twins.create_property('v_mean',data=twins_array[:,0])
             twins.create_property('origin',data=origins)
+            twins.create_property('find_nmbr',data=np.concatenate((np.zeros((num_twins-len(pairs)),dtype=int),(range(1,len(pairs)+1)))))
+
             data.objects.append(twins)
-            export_file(data.tables['twins'],file="{}/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
+            export_file(data.tables['twins'],file="{}/twinFiles/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
             export_file(data,file="{}/twinFiles/twins.dump.{}".format(path,timestep_curr),format="lammps/dump",columns =
              ["Particle Identifier","Particle Type", "Structure Type", "Position.X", "Position.Y", "Position.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.W","Cluster","PossibleTwinGroups","TwinID"],frame=frame)
             export_file(data.tables['ClNorPlanes'],file="{}/twinFiles/Normal_Vectors{}.txt".format(path,timestep_curr),format="txt/table")
