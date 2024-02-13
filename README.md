@@ -18,7 +18,7 @@ Download files: Download the contained files to your local machine.
 Run the Script: Execute either Python file within a Python environment.
 
 ### Part 1: Identification and tracking
-Example: `python Identification_and_tracking.py --numfram 6 shear.dump.*` would apply the algorithm to 6 frames of the dump file range.
+Example: `python Identification_and_tracking.py --numfram 6 dump.shear.*` would apply the algorithm to 6 frames of the dump file range.
 
 Run `python Identification_and_tracking.py -h` to see all available flags.
 
