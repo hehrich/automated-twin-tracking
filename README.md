@@ -10,7 +10,7 @@ The Python script provided here streamlines the process, making it efficient and
 - Validation of single detected structures, yielding of atomistic data files that allow for comprehensive analysis of results
 
 ## Requirements
-Python environment with OVITO package installed.
+Python environment with OVITO package installed (OVITO installation: https://www.ovito.org/manual/python/introduction/installation.html).
 
 ## Installation and Usage
 Download files: Download the contained files to your local machine.
