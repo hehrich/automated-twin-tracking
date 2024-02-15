@@ -9,7 +9,7 @@ import itertools
 from ovito.vis import VectorVis
 import argparse
 def validateFindings(filename,frames_to_compute):
-    
+    global num_of_frames, summary_helper
     pipeline = import_file(filename)
 
     def importTables(frame: int, data: DataCollection):
@@ -93,7 +93,7 @@ def validateFindings(filename,frames_to_compute):
 
 
     def validate(frame: int, data: DataCollection):
-        
+        global num_of_frames,summary_helper
         Sel=np.asarray([False]*data.particles.count)
         # Get correct keynames (can be bugged changing from or to headless OVITO)
         part_key_dict=dict.fromkeys(['orientation','position','structure','cluster'])
@@ -282,7 +282,7 @@ def validateFindings(filename,frames_to_compute):
             
             if not np.any(x_graph):
                 not_validated+=1
-                non_valid_list.append((twinids[i4]))#,i4+1,list(cl)
+                non_valid_list.append(int(twinids[i4]))#,i4+1,list(cl)
             else:
                 
 
@@ -333,9 +333,9 @@ def validateFindings(filename,frames_to_compute):
                 axleft = (axleft-180) if np.isclose(axleft,180,atol=5) else axleft
                 axright = (axright-180) if np.isclose(axright,180,atol=5) else axright
                 if (np.isclose(angle2_l, 60, atol=0.5) or np.isclose(angle2_r,60, atol=0.5)) and (np.isclose(axleft,0,atol=5) or np.isclose(axright,0,atol=5)):
-                    valid_list.append((twinids[i4]))#,i4+1,list(cl)
+                    valid_list.append(int(twinids[i4]))#,i4+1,list(cl)
                 else:
-                    non_valid_list.append(twinids[i4])
+                    non_valid_list.append(int(twinids[i4]))
                     not_validated+=1
                 print()
             ###################################
@@ -346,19 +346,56 @@ def validateFindings(filename,frames_to_compute):
             table.y = table.create_property(f'orientation_{debugorientcomp}', data=y_graph)      
             data.objects.append(table)
             yield i4/twincount
-        # TODO: import twin IDs to display actually helpful info
+       
+        assert twincount-not_validated == len(valid_list)
         print(f'Successfully validated {twincount-not_validated} of {twincount} twins.')
         print(f"Validated {valid_list} (ID)",end=" ")
         if non_valid_list:
             print(f', could not validate {non_valid_list} (ID)')
         else:
             print()
+        
+        for id in valid_list+non_valid_list:
+            
+            if id not in summary_helper.keys():
+                summary_helper[id] = ["."]*(frame)
+            
+            if id in valid_list:
+                summary_helper[id].append("Y")#[frame]="Y"
+            elif id in non_valid_list:
+                summary_helper[id].append("x")#[frame]="x"
+ 
+        for key in summary_helper:
+            if len(summary_helper[key])<frame+1:
+                summary_helper[key].append(".")
+
+        
+        with open("TwinSummary.txt", "a") as summary:
+            summary.write(f"Timestep {frame} ({data.attributes['Timestep']}) - validated {twincount-not_validated} of {twincount}\n")
+            summary.write(f"Validated findings:\n{valid_list}\n") # "keins" falls leer oder die leere liste?
+            summary.write(f"Not validated:\n{non_valid_list}\n<-------------->\n")
+            
+            
+        
+        
     pipeline.modifiers.append(validate)
-    print(f"\nAnalyzing {min(frames_to_compute ,pipeline.source.num_frames)} timestep(s)\n")
-    for frame in range(min(frames_to_compute ,pipeline.source.num_frames)):
+    num_of_frames = min(frames_to_compute ,pipeline.source.num_frames)
+    summary_helper={}
+    print(f"\nAnalyzing {num_of_frames} timestep(s)\n") ## TODO: log to file, display only progress/warnings/alike
+    for frame in range(num_of_frames):
+        if frame == 0:
+            with open("TwinSummary.txt", "w") as summary:
+                summary.write(f"# Summary for {num_of_frames} frame(s) from {filename[0]} #\n")
+                summary.write("------------------------------------------------\n")
         print(f'\n#######Timestep {frame}#######\n')
         pipeline.compute(frame)
         print('##############')
+    with open("TwinSummary.txt", "a") as summary:
+        summary.write("<===============>\n\n_____________________________\n_TwinID_|_Timestep_")
+        summary.write("\n")
+        summary.write(f"        |{" ".join([str(i) for i in range(num_of_frames)])}\n")
+        for entry in sorted(summary_helper.keys()):
+            summary.write(f"{entry:>5}   |{" ".join(summary_helper[entry])}\n")
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Python script for automatic twin identification and tracking - Part 2. Place this Python file in the "twinFiles" directory created using Part 1 "identification-and-tracking.py".')
@@ -366,3 +403,5 @@ if __name__=="__main__":
     parser.add_argument('--numfram', type=int, default=10000, help='Number of frames to compute after first timestep of provided files.')
     args=parser.parse_args()
     validateFindings(args.filename,args.numfram)
+    
+    
