@@ -31,6 +31,8 @@ Review Results: The tool will automatically identify crystallographic twins and 
 Example: `python Validate_findings.py twins.dump.*` would apply the algorithm to all timesteps, analyzed and exported in part 1.
 
 Input Data: Part 1 creates a new directory "twinfiles" and exports lammps.dump files to the same. These files are the required input for part 2.
+ 
+A summary of the validation and tracking for each analyzed timestep is provided in the produced `TwinSummary.txt` text file.
 
 ### Visualization
 Using for example the free version of OVITO (https://www.ovito.org/about/ovito-pro/) you can visualize the results of 'Identification_and_tracking.py'.
