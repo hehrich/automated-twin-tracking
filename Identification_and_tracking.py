@@ -404,7 +404,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
                 new=True         
                 pairs_list.append([v_mean,COM_mean])
                 pairs_array=(np.asarray(pairs_list))
-                
+                print(i)
                 for w,i1 in enumerate(olds):
                     yield
                     if not isinstance(i1[0],str):                    
@@ -509,8 +509,22 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             twins.y=twins.create_property('COM_mean',data=twins_array[:,1])
             twins.create_property('v_mean',data=twins_array[:,0])
             twins.create_property('origin',data=origins)
-            twins.create_property('find_nmbr',data=np.concatenate((np.zeros((num_twins-len(pairs)),dtype=int),(range(1,len(pairs)+1)))))
+ 
+            tr=[0]*num_twins
+            print(twin_tracking)
+            
+            for findid,twid in twin_tracking.items():
+                if findid < 0 and twid < 0:
+                    tr[-findid-1] = 0
+                elif findid < 0:
+                    tr[twid-1] = 0
+                elif twid < 0:
+                    tr[-twid-1] = findid
+                else:
+                    tr[twid-1] = findid
 
+            twins.create_property('find_nmbr',data=tr)
+                                                                   
             data.objects.append(twins)
             export_file(data.tables['twins'],file="{}/twinFiles/twins{}.txt".format(path,timestep_curr),format="txt/table",frame=frame)
             export_file(data,file="{}/twinFiles/twins.dump.{}".format(path,timestep_curr),format="lammps/dump",columns =
