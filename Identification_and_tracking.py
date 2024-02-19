@@ -404,7 +404,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
                 new=True         
                 pairs_list.append([v_mean,COM_mean])
                 pairs_array=(np.asarray(pairs_list))
-                print(i)
+                
                 for w,i1 in enumerate(olds):
                     yield
                     if not isinstance(i1[0],str):                    
