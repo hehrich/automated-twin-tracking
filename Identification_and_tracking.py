@@ -450,7 +450,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
                
                 dist_old=list(map(norm,pairs_array[:,1][np.asarray(value1)-1]))
                 value1.pop(dist_old.index(min(dist_old)))
-                print(dist_old)
+                
                 for left in value1:
                     twin_tracking.pop(left)
                     num_twins+=1               
@@ -511,7 +511,6 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             twins.create_property('origin',data=origins)
  
             tr=[0]*num_twins
-            print(twin_tracking)
             
             for findid,twid in twin_tracking.items():
                 if findid < 0 and twid < 0:
