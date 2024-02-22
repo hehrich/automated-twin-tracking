@@ -278,7 +278,8 @@ def validateFindings(filename,frames_to_compute):
 
             if debugorientcomp:     
                 or_sig=eval(f'or_{debugorientcomp}')
-                a=np.flatnonzero(np.abs(np.diff(NormalizeData(or_sig)))>=0.4)+1
+                if or_sig is not None:
+                    a=np.flatnonzero(np.abs(np.diff(NormalizeData(or_sig)))>=0.4)+1
             
             if not np.any(x_graph):
                 not_validated+=1
@@ -393,9 +394,9 @@ def validateFindings(filename,frames_to_compute):
     with open("TwinSummary.txt", "a") as summary:
         summary.write("<===============>\n\n_____________________________\n_TwinID_|_Timestep_")
         summary.write("\n")
-        summary.write(f"        |{" ".join([str(i) for i in range(num_of_frames)])}\n")
+        summary.write(f"        |{" ".join([(f"{i:02}") for i in range(num_of_frames)])}\n")
         for entry in sorted(summary_helper.keys()):
-            summary.write(f"{entry:>5}   |{" ".join(summary_helper[entry])}\n")
+            summary.write(f"{entry:>5}   |{"  ".join(summary_helper[entry])}\n")
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Python script for automatic twin identification and tracking - Part 2. Place this Python file in the "twinFiles" directory created using Part 1 "identification-and-tracking.py".')
