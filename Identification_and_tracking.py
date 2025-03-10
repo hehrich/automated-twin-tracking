@@ -1,3 +1,7 @@
+import multiprocessing.managers
+import warnings
+warnings.filterwarnings('ignore', message='.*OVITO.*PyPI')
+import ovito._extensions.pyscript
 from ovito.io import import_file, export_file
 from ovito.modifiers import (PolyhedralTemplateMatchingModifier,
 ExpressionSelectionModifier,
@@ -18,10 +22,10 @@ import math
 from os import getcwd,mkdir
 from os.path import exists
 from collections import Counter
-import argparse
+import argparse, shutil
+from glob import glob
 
-
-def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
+def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute, lattice_type):
     # Data import
     pipeline = import_file(filename)
     print(f"Analyzing {min(frames_to_compute ,pipeline.source.num_frames)} timestep(s)")
@@ -29,9 +33,10 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
     # Structure Identification
     pipeline.modifiers.append(PolyhedralTemplateMatchingModifier(output_orientation = True))
 
-    # Selection of hcp-like and unidentified structures
-    pipeline.modifiers.append(ExpressionSelectionModifier(expression = 'StructureType ==1 || StructureType==3'))
-    pipeline.modifiers.append(InvertSelectionModifier())
+    # Selection of hcp-like (fcc base lattice) or fcc-like (hcp base lattice) and unidentified structures
+    lattyp: str = 2 if lattice_type == "fcc" else 1
+    pipeline.modifiers.append(ExpressionSelectionModifier(expression = f'StructureType==0 || StructureType=={lattyp}'))
+    # pipeline.modifiers.append(InvertSelectionModifier())
 
     # Coordination analysis:
     pipeline.modifiers.append(CoordinationAnalysisModifier(
@@ -49,23 +54,26 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
         finder=CutoffNeighborFinder(3.05,data)
         Sel=np.asarray([False]*data.particles.count)
         Sel[Coord_zero]=True	
+        
+        
+        
         for i in Coord_nonzero: 
             
             # Sort out atoms that do not satisfy the following conditions
             if atom_coord[i]!=0:
-                # Linking atom - two hcp, one coordination 6 and no coordination > 6 nearest neighbors
+                # Linking atom - two same lattice type, one coordination 6 and no coordination > 6 nearest neighbors
                 if atom_ptm[i]==0:
                     neighbors=finder.find(i)
                     ind=[neigh.index for neigh in neighbors if atom_coord[neigh.index]!=0]        		
-                    if  not (sum(atom_ptm[ind]==2)>1 and sum(atom_coord[ind]==6)>0) or atom_coord[i]>6:               
+                    if  not (sum(atom_ptm[ind]==lattyp)>1 and sum(atom_coord[ind]==6)>0) or atom_coord[i]>6:               
                         Sel[i]=True
-                # Perfect plane atom - two hcp, coordination 6 nearest neighbors
+                # Perfect plane atom - two same lattice type, coordination 6 nearest neighbors
                 elif atom_coord[i]==6:
                     neighbors=finder.find(i)
                     ind=[neigh.index for neigh in neighbors if atom_coord[neigh.index]!=0]
-                    sum_hcp=(atom_ptm[ind]==2)
+                    sum_samestruct=(atom_ptm[ind]==lattyp)
                     sum_coord=(atom_coord[ind]==6)           
-                    if not sum(np.all([sum_hcp,sum_coord],axis=0))>2:    
+                    if not sum(np.all([sum_samestruct,sum_coord],axis=0))>2:    
                         Sel[i]=True
                    
                 # Discard atoms with more than 1 neighbor with coordination > 6  
@@ -85,7 +93,9 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
         data.particles_.create_property("Selection",data=Sel)
         stop=perf_counter()
         print(f"Took {stop-start:.2f}s to find {data.particles.count-sum(Sel)} possible TB atoms")
-
+        # debug export for selection evaluation
+        # export_file(data,file=f"twinFiles/twins.dump.{frame}",format="lammps/dump",columns =
+        #      ["Particle Identifier","Particle Type","Selection", "Structure Type", "Position.X", "Position.Y", "Position.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.X","Orientation.Y","Orientation.Z","Orientation.W"],frame=frame)
     pipeline.modifiers.append(findTBatoms)
 
     # Cluster analysis
@@ -308,15 +318,24 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
     # Track twins
     def trackTwins(frame: int, data: DataCollection):
         start=perf_counter()
-        
         global path
-        path=getcwd()
-        timestep_curr=data.attributes['Timestep']
+        path = getcwd()
+        timestep_curr = data.attributes['Timestep']
         if not exists(path+"/twinFiles"): mkdir(path+"/twinFiles")
         try:
-               pairs=list(zip(data.tables["TwinClusterIDs"]["p1"],data.tables["TwinClusterIDs"]["p2"]))
+            pairs = list(zip(data.tables["TwinClusterIDs"]["p1"],data.tables["TwinClusterIDs"]["p2"]))
+            assert len(pairs) != 0
         except KeyError:
-            print(f"No pairs have been found at timestep {timestep_curr}\n")
+            print(f"No pairs have been found at timestep {timestep_curr} (TwinClusterID table not found)\n")
+            timestep_pre = pipeline.source.compute(frame-1).attributes['Timestep']
+            if len(glob("twinFiles/twins*.txt"))!=0:
+                shutil.copy(f"twinFiles/twins{timestep_pre}.txt", f"twinFiles/twins{timestep_curr}.txt")
+            return
+        except AssertionError:
+            print(f"No pairs have been found at timestep {timestep_curr} (TwinClusterID table is empty)\n")
+            timestep_pre = pipeline.source.compute(frame-1).attributes['Timestep']
+            if len(glob("twinFiles/twins*.txt"))!=0:
+                shutil.copy(f"twinFiles/twins{timestep_pre}.txt", f"twinFiles/twins{timestep_curr}.txt")
             return
         planes=list(zip(data.tables["ClNorPlanes"]["X"],data.tables["ClNorPlanes"]["Y"],data.tables["ClNorPlanes"]["Z"]))
         atom_cluster=data.tables["clusters"]
@@ -332,7 +351,7 @@ def findAndTrack(filename, size_cutoff, unwrap, frames_to_compute):
             return deg	
 
         # On frame 0 no tracking can be performed but reference for next timestep is created
-        if frame == 0:
+        if frame == 0 or len(glob("twinFiles/twins*.txt"))==0:
             for i,e in enumerate(pairs):
                 yield
                 p1=pairs[i][0]
@@ -548,5 +567,7 @@ if __name__ == "__main__":
     parser.add_argument("--sizcut", type=int, default=100,help='Change clustersize cutoff to include or exclude smaller clusters (Default is 100 atoms).')
     parser.add_argument('--unwrap',action=argparse.BooleanOptionalAction,help='In case of periodic boundaries in the simulation, this should be set to True.')
     parser.add_argument('--numfram', type=int, default=10000, help='Number of frames to compute after first timestep of provided files.')
+    parser.add_argument('--lattice_type', '-L',type=str,nargs=1)
+    
     args=parser.parse_args()
-    findAndTrack(args.filename,args.sizcut,args.unwrap,args.numfram)
+    findAndTrack(args.filename,args.sizcut,args.unwrap,args.numfram,args.lattice_type)

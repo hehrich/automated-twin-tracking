@@ -8,7 +8,7 @@ import math
 import itertools
 from ovito.vis import VectorVis
 import argparse
-def validateFindings(filename,frames_to_compute):
+def validateFindings(filename,frames_to_compute, lattice_type):
     global num_of_frames, summary_helper
     pipeline = import_file(filename)
 
@@ -253,7 +253,7 @@ def validateFindings(filename,frames_to_compute):
                 s=com1+distance_scaled/2*verbVec+t*verbVec
                 asd={}
                 for neigh1 in finder.find_at(s): 
-                    if part_strt[neigh1.index] == 1 or part_cls[neigh1.index] in cl:
+                    if part_strt[neigh1.index] == lattice_type or part_cls[neigh1.index] in cl:
                             
                         
                         punkt=data.particles.position[neigh1.index]
@@ -314,7 +314,7 @@ def validateFindings(filename,frames_to_compute):
                 q_rot_right=quaternion_multiply(q1_right,q2_right)
                 angle_l=math.degrees(2*np.arctan2(np.linalg.norm(q_rot_left[1:]),q_rot_left[0]))
                 angle_r=math.degrees(2*np.arctan2(np.linalg.norm(q_rot_right[1:]),q_rot_right[0]))
-                print(f"- angle with two quat - \nleft: {angle_l:.2f} | right: {angle_r:.2f}")            
+                print(f"- angle with two quat (expecting 60):  - \nleft: {angle_l:.2f} | right: {angle_r:.2f}")            
 
                 Q_rotmat_left=QtoR(q_rot_left)
                 angle2_l = math.degrees(np.arccos(0.5*(np.trace(Q_rotmat_left)-1)))
@@ -326,11 +326,11 @@ def validateFindings(filename,frames_to_compute):
                 Q_rotmat_out = QtoR(q_rot_out)
                 angle_out = math.degrees(np.arccos(0.5*(np.trace(Q_rotmat_right)-1)))
                             
-                print(f"- angle with rot matr -\nleft: {angle2_l:.2f} | right: {angle2_r:.2f}")
+                print(f"- angle with rot matr (expecting 60): -\nleft: {angle2_l:.2f} | right: {angle2_r:.2f}")
                 axleft=angle(rot_ax(Q_rotmat_left),normvec)
                 axright=angle(rot_ax(Q_rotmat_right),normvec)
-                print(f"- rotation axis and degree to normvec -\nleft: {axleft:.2f} | right: {axright:.2f}")
-                print(f"= outer regions angle =\nto each other: {angle_out:.2f} | to normvec: {angle(rot_ax(Q_rotmat_out),normvec):.2f}")
+                print(f"- rotation axis and degree to normvec (expecting 0 or 180) -\nleft: {axleft:.2f} | right: {axright:.2f}")
+                print(f"= outer regions angle =\nto each other (expecting 0 or 180): {angle_out:.2f} | to normvec (expecting 0 or 180): {angle(rot_ax(Q_rotmat_out),normvec):.2f}")
                 axleft = (axleft-180) if np.isclose(axleft,180,atol=5) else axleft
                 axright = (axright-180) if np.isclose(axright,180,atol=5) else axright
                 if (np.isclose(angle2_l, 60, atol=0.5) or np.isclose(angle2_r,60, atol=0.5)) and (np.isclose(axleft,0,atol=5) or np.isclose(axright,0,atol=5)):
@@ -401,8 +401,10 @@ def validateFindings(filename,frames_to_compute):
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Python script for automatic twin identification and tracking - Part 2. Place this Python file in the "twinFiles" directory created using Part 1 "identification-and-tracking.py".')
     parser.add_argument('filename',type=str,nargs=1)
+    parser.add_argument('-L', '--lattice_type', type=str, default="hcp", help='Lattice type to consider for validation (fcc or hcp).  Default is fcc.')
     parser.add_argument('--numfram', type=int, default=10000, help='Number of frames to compute after first timestep of provided files.')
     args=parser.parse_args()
-    validateFindings(args.filename,args.numfram)
+    lattice_type_arg = 2 if args.lattice_type.lower() == "hcp" else 1
+    validateFindings(args.filename,args.numfram,lattice_type_arg)
     
     
