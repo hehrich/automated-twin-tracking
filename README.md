@@ -18,7 +18,7 @@ Download files: Download the contained files to your local machine.
 Run the Script: Execute either Python file within a Python environment.
 
 ### Part 1: Identification and tracking
-Example: `python Identification_and_tracking.py --numfram 6 dump.shear.*` would apply the algorithm to 6 frames of the dump file range.
+Example: `python Identification_and_tracking.py dump.shear.* --numfram 6 -L hcp` would apply the algorithm to 6 frames of the dump file range, expecting a HCP lattice as the materials base lattice structure.
 
 Run `python Identification_and_tracking.py -h` to see all available flags.
 
@@ -50,5 +50,6 @@ Contributions and improvements to this tool are welcome! Feel free to fork this 
 This tool is licensed under GNU GPLv3. See the LICENSE file for more details.
 
 ## Contact
+If you find this tool helpful in your research, please consider citing this article: https://doi.org/10.1016/j.commatsci.2024.112878
 For inquiries or suggestions, contact hendrik.ehrich@tuwien.ac.at.
 
