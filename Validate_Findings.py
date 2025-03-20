@@ -10,6 +10,7 @@ from ovito.vis import VectorVis
 import argparse
 def validateFindings(filename,frames_to_compute, lattice_type):
     global num_of_frames, summary_helper
+    print(f"Analysing {frames_to_compute} frames from {filename} with lattice type {lattice_type}")
     pipeline = import_file(filename)
 
     def importTables(frame: int, data: DataCollection):
@@ -105,19 +106,27 @@ def validateFindings(filename,frames_to_compute, lattice_type):
                         dic[key]=actkey
             return dic
         
-        part_key_dict=get_keys(part_key_dict,list(data.particles.keys()))
-        clustabl_key_dict=get_keys(clustabl_key_dict,list(data.tables['clusters'].keys()))
+        try: 
+            part_key_dict=get_keys(part_key_dict,list(data.particles.keys()))
+            clustabl_key_dict=get_keys(clustabl_key_dict,list(data.tables['clusters'].keys()))
         
-        
-        COMS=data.tables['clusters'][clustabl_key_dict['center']]
-        NorVecs=data.tables['ClNorPlanes']['NorVec']
-        Sizes=data.tables['clusters'][clustabl_key_dict['size']]        
-        ptwins=data.particles["possibletwingroups"]
-        part_or=data.particles[part_key_dict['orientation']]
-        part_pos=data.particles[part_key_dict['position']]
-        part_strt=data.particles[part_key_dict['structure']]
-        part_cls=data.particles[part_key_dict['cluster']]
-        vector_data=np.zeros((data.particles.count, 3))
+            COMS=data.tables['clusters'][clustabl_key_dict['center']]
+            NorVecs=data.tables['ClNorPlanes']['NorVec']
+            Sizes=data.tables['clusters'][clustabl_key_dict['size']]        
+            # ptwins=data.particles["possibletwingroups"]
+            part_or=data.particles[part_key_dict['orientation']]
+            part_pos=data.particles[part_key_dict['position']]
+            part_strt=data.particles[part_key_dict['structure']]
+            part_cls=data.particles[part_key_dict['cluster']]
+            # vector_data=np.zeros((data.particles.count, 3))
+        except TypeError:
+            print("No twins detected in this timestep. .dump file addded for completeness.")
+            with open("TwinSummary.txt", "a") as summary:
+                summary.write(f"Timestep {frame} ({data.attributes['Timestep']}) - no twins found\n<-------------->\n")
+            for key in summary_helper:
+                summary_helper[key].append(".")
+            return
+                
         def NormalizeData(data):
             return (data - np.min(data)) / (np.max(data) - np.min(data))
         twincount=len(data.tables['TwinClusterIDs']['ClusterIDs'])
@@ -232,7 +241,8 @@ def validateFindings(filename,frames_to_compute, lattice_type):
                         seq_pos,seq_ind=splitted_pos,splitted_ind
 
                 return np.asarray(y_raw)
-                
+         
+        print("cutoff is set to 15")
         for i4,cl in enumerate(data.tables['TwinClusterIDs']['ClusterIDs']):
             
             orient_x,orient_y,orient_z,orient_w = ({} for i in range(4))
@@ -246,6 +256,7 @@ def validateFindings(filename,frames_to_compute, lattice_type):
             distance_scaled=distance*2
             verbVec=(com2-com1)/np.linalg.norm(com1-com2)
             finder = CutoffNeighborFinder(min(50,max(0.2*distance,min_cutoff)),data)
+            # finder = CutoffNeighborFinder(15,data) # manually set cutoff to 10    make it a flag for argparse   
             
             
             
@@ -329,7 +340,7 @@ def validateFindings(filename,frames_to_compute, lattice_type):
                 print(f"- angle with rot matr (expecting 60): -\nleft: {angle2_l:.2f} | right: {angle2_r:.2f}")
                 axleft=angle(rot_ax(Q_rotmat_left),normvec)
                 axright=angle(rot_ax(Q_rotmat_right),normvec)
-                print(f"- rotation axis and degree to normvec (expecting 0 or 180) -\nleft: {axleft:.2f} | right: {axright:.2f}")
+                print(f"- rotation axis degree to normvec (expecting 0 or 180) -\nleft: {axleft:.2f} | right: {axright:.2f}")
                 print(f"= outer regions angle =\nto each other (expecting 0 or 180): {angle_out:.2f} | to normvec (expecting 0 or 180): {angle(rot_ax(Q_rotmat_out),normvec):.2f}")
                 axleft = (axleft-180) if np.isclose(axleft,180,atol=5) else axleft
                 axright = (axright-180) if np.isclose(axright,180,atol=5) else axright
@@ -370,7 +381,7 @@ def validateFindings(filename,frames_to_compute, lattice_type):
             if len(summary_helper[key])<frame+1:
                 summary_helper[key].append(".")
 
-        
+        # do this for no twin finds as well
         with open("TwinSummary.txt", "a") as summary:
             summary.write(f"Timestep {frame} ({data.attributes['Timestep']}) - validated {twincount-not_validated} of {twincount}\n")
             summary.write(f"Validated findings:\n{valid_list}\n") # "keins" falls leer oder die leere liste?
@@ -389,6 +400,7 @@ def validateFindings(filename,frames_to_compute, lattice_type):
                 summary.write(f"# Summary for {num_of_frames} frame(s) from {filename[0]} #\n")
                 summary.write("------------------------------------------------\n")
         print(f'\n#######Timestep {frame}#######\n')
+        # this computes pipeline
         pipeline.compute(frame)
         print('##############')
     with open("TwinSummary.txt", "a") as summary:
